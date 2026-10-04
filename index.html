@@ -1,131 +1,120 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CASIOアラームと時間計算</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0c1821">
+<style>:root{color-scheme:dark}*{box-sizing:border-box}body{font-family:system-ui,sans-serif;max-width:440px;margin:0 auto;padding:16px;background:#0c1821;color:#f4f9fc}h1{font-size:1.24rem;margin:8px 0}button{font:inherit;border:0;cursor:pointer}#current{color:#bad2db;font-size:1.05rem;min-height:1.5em;margin:14px 0}.clock{font-size:clamp(3.7rem,19vw,5.6rem);font-weight:750;text-align:center;font-variant-numeric:tabular-nums;margin:4px 0 14px}.placeholder{color:#617889}.mode{display:flex;align-items:center;justify-content:center;gap:12px;font-size:1.2rem;margin-bottom:14px}.mode input{height:27px;width:27px;accent-color:#62d3ae}.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.pad button{background:#243b4b;color:#fff;border-radius:13px;font-size:1.6rem;font-weight:700;height:64px}.pad .sub{font-size:1.1rem}#arm{width:100%;margin:16px 0 7px;border-radius:13px;background:#77e0b5;color:#0c2723;font-size:1.35rem;font-weight:800;padding:17px}#arm:disabled{opacity:.38}#cancel{width:100%;border-radius:10px;background:#364d5b;color:#fff;padding:12px}#status{min-height:4em;line-height:1.45;font-size:1.1rem}details{font-size:.85rem;color:#bed4de}pre{white-space:pre-wrap;overflow-wrap:anywhere}small{color:#bad2db}</style>
+<style>
+body{max-width:440px;padding:8px 14px 12px}h1{font-size:1.1rem;margin:2px 0 7px}
+.times{display:grid;grid-template-columns:1fr 1fr;gap:8px}.timebox{background:#1a303d;border-radius:10px;padding:6px 10px}.timebox .label{color:#a9c7d4;font-size:.76rem}.timebox strong{display:block;font-size:1.45rem;font-variant-numeric:tabular-nums;white-space:nowrap}.timebox small{font-size:.8rem}
+.editlabel{text-align:center;color:#a9c7d4;font-size:.8rem;margin:8px 0 0}.clock{font-size:clamp(2.6rem,14vw,3.8rem);margin:0 0 5px;line-height:1}.mode{font-size:.94rem;gap:8px;margin:3px 0 8px}.mode input{height:21px;width:21px}
+.pad{max-width:290px;margin:auto;gap:5px}.pad button{height:clamp(39px,6.6vh,49px);border-radius:9px;font-size:1.35rem;touch-action:manipulation}.pad .sub{font-size:.9rem}
+#arm{max-width:320px;display:block;margin:11px auto 5px;padding:11px;font-size:1.08rem}#cancel{max-width:320px;display:block;margin:auto;padding:7px}#cancel[hidden]{display:none}#status{font-size:.93rem;min-height:2.8em;margin:9px 0 4px}details{margin-top:6px}details pre{font-size:.8rem}
+@media(max-height:680px){.pad button{height:38px}.clock{font-size:2.7rem}.mode{margin-bottom:4px}#status{min-height:2em}body{padding-top:4px}}
+</style>
+<style>
+body{min-height:100dvh;display:flex;flex-direction:column;padding:8px 14px 9px}
+.times{display:block}.timebox{padding:8px 13px}.timebox .label{font-size:.83rem}.timebox strong{font-size:1.65rem}
+.timebox.nowbox{background:#183644}.nowbox strong{font-size:clamp(2.8rem,15vw,4.2rem);line-height:1.05;margin:2px 0}
+.timebox.alarmbox{margin-top:10px;display:flex;align-items:center;gap:8px;min-height:68px}.alarmbox .label{flex:1}.alarmbox strong{font-size:1.55rem}.alarmbox small{font-size:1rem;font-weight:700;background:#344a57;border-radius:8px;padding:5px 8px}.alarmbox small.on{background:#1f674b;color:#aafad0}.alarmbox small.off{background:#574044;color:#ffd0ce}
+#inputZone{margin-top:auto;padding-top:9px}.mode{margin:0 0 9px;font-size:.98rem}.pad{max-width:310px;gap:6px}.pad button{height:clamp(42px,7vh,53px);font-size:1.38rem}
+#arm{max-width:360px;display:flex;align-items:center;justify-content:space-between;gap:6px;text-align:left;padding:9px 15px;margin:10px auto 5px;min-height:67px}
+#arm .armtime{font-size:1.75rem;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.1}
+#arm .armcaption{display:block;font-size:.72rem;font-weight:600;white-space:nowrap}
+#arm .armaction{font-size:1.08rem;text-align:right;line-height:1.12}
+#status{font-size:.9rem;min-height:2.5em;margin:7px 0 4px}details{font-size:.75rem;display:inline-block;margin-right:10px}details p{font-size:.9rem}
+@media(max-height:650px){.nowbox strong{font-size:2.6rem}.timebox.alarmbox{min-height:56px;margin-top:5px}.pad button{height:40px}#arm{min-height:55px}.mode{margin-bottom:5px}}
+</style>
+<style>
+[hidden]{display:none!important}body{padding:8px 14px 9px}nav{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px}nav button{border-radius:9px;background:#203847;color:#d9e8ed;padding:7px;font-size:.91rem}nav button.selected{background:#77e0b5;color:#0c2723;font-weight:800}
+#alarmView,#calcView{display:flex;flex:1;flex-direction:column;min-height:0}
+body.calculator{background:#241d2f;color:#fff8f4}body.calculator nav button{background:#463c50;color:#fff1e8}body.calculator nav button.selected{background:#f0b779;color:#2d2031}
+.calcHeading{text-align:center;font-size:1.25rem;margin:9px 0;color:#ffe5ca}.calcHelp{font-size:.86rem;color:#e3cedc;text-align:center;margin:0 0 11px}.calcLine{display:grid;grid-template-columns:1fr 48px 1fr;align-items:center;gap:5px}.calcValue{background:#45394d;color:white;border-radius:11px;padding:9px 5px;border:2px solid transparent;min-height:78px;font-variant-numeric:tabular-nums}.calcValue.active{border-color:#f0b779}.calcValue small{display:block;font-size:.75rem;color:#ead9e8}.calcValue strong{font-size:clamp(1.12rem,5.1vw,1.55rem);letter-spacing:-.035em;white-space:nowrap}.calcOp{background:#f0b779;color:#2d2031;border-radius:9px;height:55px;font-weight:800;font-size:1.65rem}.calcResult{margin-top:16px;background:#503e60;border-radius:13px;padding:12px;text-align:center}.calcResult small{display:block;color:#e4cce6}.calcResult strong{font-size:2.35rem;font-variant-numeric:tabular-nums}.calcResult span{display:block;min-height:1.2em;font-size:.84rem;color:#ebd1df}.calcBottom{margin-top:auto;padding-top:15px}.calcBottom .pad button{background:#51445e;height:clamp(45px,7.2vh,57px)}.calcBottom .pad button:active{background:#80648b}.calcFoot{text-align:center;color:#dec8dc;font-size:.78rem;margin:10px 0 4px}
+@media(max-height:630px){.calcHeading{margin:3px}.calcResult{margin-top:8px;padding:7px}.calcResult strong{font-size:1.85rem}.calcBottom .pad button{height:39px}}
+#alarmView h1,.calcHeading,.calcHelp,.calcFoot,.mode{display:none}#inputZone{padding-top:8px}.pad{margin-top:5px}
+.timebox.nowbox{background:#050a0e;border:1px solid #1d3948}.nowbox strong{font-size:clamp(3rem,16vw,4.4rem)}
+.timebox.alarmbox{margin-top:8px}.alarmbox .label{font-size:.88rem}
+.sendPreview{margin-top:8px;border:1px solid #366658;border-radius:11px;background:#122e2a;padding:8px 13px}.sendPreview .label{font-size:.86rem;color:#b9e4d1}.sendPreview strong{display:block;font-size:2rem;line-height:1.12;font-variant-numeric:tabular-nums}
+#arm{display:block;text-align:center;min-height:53px;margin:10px auto 5px;padding:11px 8px;font-size:1.12rem}#arm .armaction{font-size:1.12rem;text-align:center}
+@media(max-height:650px){.sendPreview{padding:5px 10px}.sendPreview strong{font-size:1.65rem}.timebox.alarmbox{min-height:53px}#arm{min-height:45px}}
+</style>
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
-
-  <title>みる</title>
-
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-      background: #fafafa;
-    }
-
-    #ui {
-      margin-top: 18vh;
-    }
-
-    h1 {
-      font-size: 2.6rem;
-      margin-bottom: 2.5rem;
-    }
-
-    #folderInput {
-      font-size: 1.6rem;
-      margin-bottom: 2rem;
-    }
-
-    #startBtn {
-      font-size: 1.8rem;
-      padding: 1rem 2.5rem;
-      margin-top: 1rem;
-    }
-
-    #help {
-      display: none;
-      font-size: 1.4rem;
-      margin-top: 2rem;
-      color: #555;
-    }
-
-    #viewer {
-      display: none;
-    }
-
-    #slide {
-      width: 100vw;
-      height: 100vh;
-      object-fit: contain;
-      background: black;
-    }
-  </style>
-</head>
-
-<body>
-
-  <div id="ui">
-    <h1>みる</h1>
-
-    <input id="folderInput" type="file" webkitdirectory directory allowdirs>
-
-    <button id="startBtn">再生開始</button>
-
-    <div id="help">スワイプで次へ進みます</div>
-
-    <!-- 説明文 -->
-    <div id="info" style="
-      margin-top: 3rem;
-      font-size: 1.2rem;
-      color: #666;
-      line-height: 1.8;
-    ">
-      🐤選択したフォルダの画像がすてきなスライドショーになるよ。<br>
-      🐤フォルダの画像を表示するだけです。アプリ終了するとデータは残りません。外部に通信はしません。<br>
-      🐤15秒で変わります。長い動画は一時停止してみてね。
-    </div>
-  </div>
-
-  <div id="viewer">
-    <img id="slide">
-  </div>
-
-  <!-- フェード用マスク -->
-  <div id="fadeMask" style="
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: black;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.8s;
-  "></div>
-
-  <!-- 動画の音声アイコン（控えめ） -->
-  <div id="videoSound" style="
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    font-size: 1.6rem;
-    color: #aaa;
-    display: none;
-    z-index: 9999;
-  ">🔊</div>
-
-  <!-- 操作バー -->
-  <div id="controls" style="
-    position: fixed;
-    bottom: 10px;
-    width: 100%;
-    text-align: center;
-    font-size: 2rem;
-    color: #ccc;
-    background: rgba(0,0,0,0.3);
-    z-index: 9999;
-  ">
-    <span id="prev" style="margin: 0 1.5rem;">⇦</span>
-    <span id="pause" style="margin: 0 1.5rem;">⏸</span>
-    <span id="nextBtn" style="margin: 0 1.5rem;">⇨</span>
-  </div>
-
-  <script src="app.js"></script>
-</body>
-</html>
+<nav><button id="alarmTab" class="selected">⌚ アラーム</button><button id="calcTab">⏱ 時間計算</button></nav>
+<div id="alarmView">
+<div class="times"><div class="timebox nowbox"><div class="label">現在時刻</div><strong id="now">--:--</strong></div><div class="timebox alarmbox"><div class="label">現在のCASIOアラーム時刻<br><strong id="current">--:--</strong></div><small id="currentNote">未確認</small></div></div>
+<div class="sendPreview"><div class="label">時計へ送信するアラーム時刻</div><strong id="display">--:--</strong></div>
+<div id="inputZone">
+<div class="pad" id="pad"><button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button class="sub" data-key="clear">消去</button><button data-key="0">0</button><button class="sub" data-key="back">⌫</button></div>
+<button id="arm" disabled><span class="armaction" id="armAction">CASIOアラームに転送</span></button><button id="cancel" hidden>送信待ちを解除</button>
+<p id="status" role="status"></p>
+</div>
+</div>
+<div id="calcView" hidden>
+<div class="calcLine"><button id="calcA" class="calcValue active"><small>時刻 A</small><strong id="calcAText">--:--:--</strong></button><button id="calcOp" class="calcOp">＋</button><button id="calcB" class="calcValue"><small>時間 B</small><strong id="calcBText">--:--:--</strong></button></div>
+<div class="calcResult"><small>結果</small><strong id="calcResult">--:--:--</strong><span id="calcNote"></span></div>
+<div class="calcBottom"><div class="pad" id="calcPad"><button data-digit="1">1</button><button data-digit="2">2</button><button data-digit="3">3</button><button data-digit="4">4</button><button data-digit="5">5</button><button data-digit="6">6</button><button data-digit="7">7</button><button data-digit="8">8</button><button data-digit="9">9</button><button class="sub" data-digit="clear">消去</button><button data-digit="0">0</button><button class="sub" data-digit="back">⌫</button></div></div>
+</div>
+<script>(()=>{'use strict';
+const tail='-b012-49a8-b1f8-394fb2032b0f',uuid=n=>'26eb00'+n+tail,$=id=>document.getElementById(id),name='CASIO MTG-B1000';
+let device=null,request=null,setting=null,digits='',armed=null,connecting=false,pending=null,attempt=0,timer=null,writing=false;const lines=[];
+function log(s){lines.push(s);console.debug(s)}
+function status(s){$('status').textContent=s}
+function hex(a){return a.map(b=>b.toString(16).padStart(2,'0')).join(' ')}
+function fmt(a){return String(a.h).padStart(2,'0')+':'+String(a.m).padStart(2,'0')}
+function showCurrent(a){$('current').textContent=fmt(a);$('currentNote').textContent=a.on?'ON':'OFF';$('currentNote').className=a.on?'on':'off'}
+function tick(){const d=new Date();$('now').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+function parsed(){if(digits.length!==4)return null;const h=Number(digits.slice(0,2)),m=Number(digits.slice(2));return h<24&&m<60?{h,m}:null}
+function paint(){const s=(digits+'----').slice(0,4);$('display').textContent=s.slice(0,2)+':'+s.slice(2);$('display').classList.toggle('placeholder',digits.length<4);$('armAction').textContent=armed?'接続待ち':writing?'転送中…':'CASIOアラームに転送';$('arm').disabled=!!armed||writing||!parsed();$('cancel').hidden=!armed;}
+function disconnected(){request=setting=null;if($('currentNote').className==='on'||$('currentNote').className==='off')$('currentNote').textContent+='・前回';if(pending){pending.reject(Error('接続が切れました'));pending=null}if(armed&&!writing){status('接続待ち');schedule()}else if(!writing)status('切断');}
+function waitAnswer(){return new Promise((resolve,reject)=>{const t=setTimeout(()=>{pending=null;reject(Error('時計から返事がありません'))},5000);pending={resolve:b=>{clearTimeout(t);pending=null;resolve(b)},reject:e=>{clearTimeout(t);pending=null;reject(e)}}})}
+async function read(){const answer=waitAnswer();try{await request.writeValueWithoutResponse(new Uint8Array([0x15]))}catch(e){pending?.reject(e);await answer.catch(()=>{});throw e}const b=await answer;log('読取: '+hex(b));if(b.length!==5||b[0]!==0x15||b[3]>23||b[4]>59)throw Error('アラーム1の返事を解読できません');return{h:b[3],m:b[4],on:!!(b[1]&0x40)}}
+function schedule(){if(timer||!armed)return;timer=setTimeout(()=>{timer=null;connect()},2500)}
+async function connect(){if(!armed||connecting||writing)return;connecting=true;try{
+ if(!isSecureContext||!navigator.bluetooth)throw Error('Android ChromeのHTTPSページで開いてください');
+ if(!device){const all=navigator.bluetooth.getDevices?await navigator.bluetooth.getDevices():[];device=all.find(d=>d.name===name)}
+ if(!device){status('時計を選択');device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[uuid('0d'),0x1804]});if(device.name!==name){device=null;throw Error('B1000以外が選ばれました')}}
+ if(!armed)return;
+ device.removeEventListener('gattserverdisconnected',disconnected);device.addEventListener('gattserverdisconnected',disconnected);
+ status('接続待ち');
+ const server=device.gatt.connected?device.gatt:await device.gatt.connect();if(!armed)return;
+ const svc=await server.getPrimaryService(uuid('0d'));request=await svc.getCharacteristic(uuid('2c'));setting=await svc.getCharacteristic(uuid('2d'));
+ await setting.startNotifications();setting.addEventListener('characteristicvaluechanged',onNotify);
+ connecting=false;await sendArmed();return;
+ }catch(e){log('接続: '+e.name+' '+e.message);if(armed){status(e.name==='NotFoundError'?'時計を選択':'接続待ち: '+e.message);if(e.name==='NotFoundError'&&!device){armed=null;status('選択を中止');paint()}}}
+ finally{connecting=false;paint();if(armed&&!writing)schedule()}}
+function onNotify(e){const v=e.target.value,b=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength));if(b[0]===0x15&&pending)pending.resolve(b)}
+async function sendArmed(){if(!armed||writing)return;writing=true;const target=armed;armed=null;paint();try{
+ const before=await read();showCurrent(before);
+ if(before.h===target.h&&before.m===target.m&&before.on===target.on){status('時計はすでに '+fmt(before)+' '+(before.on?'ON':'OFF')+' です');return}
+ // 書込は一回のみ。結果が不明な場合は自動再送しない。
+ const b=[0x15,target.on?0x40:0,0x40,target.h,target.m];log('設定送信: '+hex(b));status(fmt(target)+' を時計へ送信中…');
+ await setting.writeValueWithResponse(new Uint8Array(b));await new Promise(r=>setTimeout(r,300));
+ const after=await read();showCurrent(after);
+ status(after.h===target.h&&after.m===target.m&&after.on===target.on?'送信成功 '+fmt(after)+' '+(after.on?'ON':'OFF'):'確認不一致');
+ }catch(e){log('送信または確認失敗: '+e.name+' '+e.message);status('確認できません（再送なし）')}
+ finally{writing=false;paint()}}
+$('pad').onclick=e=>{const k=e.target.closest('button')?.dataset.key;if(!k||armed||writing)return;if(k==='clear')digits='';else if(k==='back')digits=digits.slice(0,-1);else digits=(digits.length===4?'':digits)+k;paint();if(digits.length===4&&!parsed())status('入力確認')};
+$('arm').onclick=()=>{const a=parsed();if(!a||armed||writing)return;armed={...a,on:true};attempt++;log('送信待ち '+fmt(armed)+' ON');status('接続待ち');paint();connect()};
+$('cancel').onclick=()=>{armed=null;if(timer){clearTimeout(timer);timer=null}status('待機解除');paint()};
+tick();setInterval(tick,15000);paint();})();</script>
+<script>(()=>{'use strict';
+const $=id=>document.getElementById(id);let active='A',value={A:'',B:''},sign=1;
+function visible(s){const t=(s+'------').slice(0,6);return t.slice(0,2)+':'+t.slice(2,4)+':'+t.slice(4,6)}
+function seconds(s,clock){if(s.length!==6)return null;const h=+s.slice(0,2),m=+s.slice(2,4),v=+s.slice(4,6);return m<60&&v<60&&(!clock||h<24)?h*3600+m*60+v:null}
+function padded(v){return String(v).padStart(2,'0')}
+ function render(){for(const key of ['A','B']){$('calc'+key+'Text').textContent=visible(value[key]);$('calc'+key).classList.toggle('active',active===key)}$('calcOp').textContent=sign===1?'＋':'−';$('calcResult').textContent='--:--:--';$('calcNote').textContent='';const a=seconds(value.A,true),b=seconds(value.B,false);
+ if(value.A.length===6&&a===null||value.B.length===6&&b===null){$('calcNote').textContent='入力確認';return}if(a===null||b===null)return;
+ const total=a+sign*b,day=Math.floor(total/86400),within=((total%86400)+86400)%86400;
+ $('calcResult').textContent=padded(Math.floor(within/3600))+':'+padded(Math.floor(within%3600/60))+':'+padded(within%60);
+ $('calcNote').textContent=day>0?'翌日'+(day>1?' ＋'+day+'日':''):day<0?'前日'+(day< -1?' '+day+'日':''):'同じ日';
+ }
+ $('alarmTab').onclick=()=>{document.body.classList.remove('calculator');$('alarmView').hidden=false;$('calcView').hidden=true;$('alarmTab').classList.add('selected');$('calcTab').classList.remove('selected')};
+ $('calcTab').onclick=()=>{document.body.classList.add('calculator');$('alarmView').hidden=true;$('calcView').hidden=false;$('calcTab').classList.add('selected');$('alarmTab').classList.remove('selected')};
+ $('calcA').onclick=()=>{active='A';render()};$('calcB').onclick=()=>{active='B';render()};$('calcOp').onclick=()=>{sign*=-1;render()};
+ $('calcPad').onclick=e=>{const k=e.target.closest('[data-digit]')?.dataset.digit;if(!k)return;let s=value[active];if(k==='clear')s='';else if(k==='back')s=s.slice(0,-1);else s=(s.length===6?'':s)+k;value[active]=s;if(s.length===6&&active==='A')active='B';render()};render();
+})();</script><script>
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(console.warn);
+  });
+}
+</script></html>
