@@ -37,11 +37,25 @@ body.calculator{background:#241d2f;color:#fff8f4}body.calculator nav button{back
 #arm{display:block;text-align:center;min-height:53px;margin:10px auto 5px;padding:11px 8px;font-size:1.12rem}#arm .armaction{font-size:1.12rem;text-align:center}
 @media(max-height:650px){.sendPreview{padding:5px 10px}.sendPreview strong{font-size:1.65rem}.timebox.alarmbox{min-height:53px}#arm{min-height:45px}}
 </style>
+<style>
+.timebox.nowbox{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#1c2328;border-color:#303a40;padding:5px 12px;color:#a7b2b8}
+.nowbox .label{font-size:.8rem;color:#8f9ca3}
+.nowbox strong{font-size:1.45rem;line-height:1.2;margin:0;color:#a7b2b8}
+.timebox.alarmbox{background:#203b48;border:1px solid #467086;min-height:84px;padding:10px 13px}
+.alarmbox .label{font-size:.92rem;color:#d3e7f0}
+#current{font-size:clamp(2rem,10vw,2.55rem);line-height:1.12;margin:4px 0 0;color:#fff}
+.alarmbox small{font-size:1.12rem;padding:7px 10px}
+.sendPreview{background:#164036;border:2px solid #7dddb6;padding:10px 13px}
+.sendPreview .label{font-size:.94rem;color:#d7f5e7}
+.sendPreview strong{font-size:clamp(2.35rem,12vw,3rem);font-weight:800;color:#fff}
+.sendPreview strong.placeholder{color:#a8bdb6}
+@media(max-height:650px){.timebox.alarmbox{min-height:70px;padding:6px 12px}.sendPreview{padding:6px 12px}}
+</style>
 
 <nav><button id="alarmTab" class="selected">⌚ アラーム</button><button id="calcTab">⏱ 時間計算</button></nav>
 <div id="alarmView">
-<div class="times"><div class="timebox nowbox"><div class="label">現在時刻</div><strong id="now">--:--</strong></div><div class="timebox alarmbox"><div class="label">現在のCASIOアラーム時刻<br><strong id="current">--:--</strong></div><small id="currentNote">未確認</small></div></div>
-<div class="sendPreview"><div class="label">時計へ送信するアラーム時刻</div><strong id="display">--:--</strong></div>
+<div class="times"><div class="timebox nowbox"><div class="label">スマホ現在時刻</div><strong id="now">--:--</strong></div><div class="timebox alarmbox"><div class="label">時計のアラーム時刻<br><strong id="current">--:--</strong></div><small id="currentNote">未確認</small></div></div>
+<div class="sendPreview"><div class="label">これからCASIOへ送る時刻</div><strong id="display">--:--</strong></div>
 <div id="inputZone">
 <div class="pad" id="pad"><button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button class="sub" data-key="clear">消去</button><button data-key="0">0</button><button class="sub" data-key="back">⌫</button></div>
 <button id="arm" disabled><span class="armaction" id="armAction">CASIOアラームに転送</span></button><button id="cancel" hidden>送信待ちを解除</button>
@@ -62,8 +76,8 @@ function hex(a){return a.map(b=>b.toString(16).padStart(2,'0')).join(' ')}
 function fmt(a){return String(a.h).padStart(2,'0')+':'+String(a.m).padStart(2,'0')}
 function showCurrent(a){$('current').textContent=fmt(a);$('currentNote').textContent=a.on?'ON':'OFF';$('currentNote').className=a.on?'on':'off'}
 function tick(){const d=new Date();$('now').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
-function parsed(){if(digits.length!==4)return null;const h=Number(digits.slice(0,2)),m=Number(digits.slice(2));return h<24&&m<60?{h,m}:null}
-function paint(){const s=(digits+'----').slice(0,4);$('display').textContent=s.slice(0,2)+':'+s.slice(2);$('display').classList.toggle('placeholder',digits.length<4);$('armAction').textContent=armed?'接続待ち':writing?'転送中…':'CASIOアラームに転送';$('arm').disabled=!!armed||writing||!parsed();$('cancel').hidden=!armed;}
+function parsed(){if(digits.length<3||digits.length>4)return null;const s=digits.padStart(4,'0'),h=Number(s.slice(0,2)),m=Number(s.slice(2));return h<24&&m<60?{h,m}:null}
+function paint(){const s=digits.padStart(4,'0');$('display').textContent=digits?s.slice(0,2)+':'+s.slice(2):'--:--';$('display').classList.toggle('placeholder',digits.length<3);$('armAction').textContent=armed?'接続待ち':writing?'転送中…':'CASIOアラームに転送';$('arm').disabled=!!armed||writing||!parsed();$('cancel').hidden=!armed;}
 function disconnected(){request=setting=null;if($('currentNote').className==='on'||$('currentNote').className==='off')$('currentNote').textContent+='・前回';if(pending){pending.reject(Error('接続が切れました'));pending=null}if(armed&&!writing){status('接続待ち');schedule()}else if(!writing)status('切断');}
 function waitAnswer(){return new Promise((resolve,reject)=>{const t=setTimeout(()=>{pending=null;reject(Error('時計から返事がありません'))},5000);pending={resolve:b=>{clearTimeout(t);pending=null;resolve(b)},reject:e=>{clearTimeout(t);pending=null;reject(e)}}})}
 async function read(){const answer=waitAnswer();try{await request.writeValueWithoutResponse(new Uint8Array([0x15]))}catch(e){pending?.reject(e);await answer.catch(()=>{});throw e}const b=await answer;log('読取: '+hex(b));if(b.length!==5||b[0]!==0x15||b[3]>23||b[4]>59)throw Error('アラーム1の返事を解読できません');return{h:b[3],m:b[4],on:!!(b[1]&0x40)}}
@@ -92,7 +106,7 @@ async function sendArmed(){if(!armed||writing)return;writing=true;const target=a
  status(after.h===target.h&&after.m===target.m&&after.on===target.on?'送信成功 '+fmt(after)+' '+(after.on?'ON':'OFF'):'確認不一致');
  }catch(e){log('送信または確認失敗: '+e.name+' '+e.message);status('確認できません（再送なし）')}
  finally{writing=false;paint()}}
-$('pad').onclick=e=>{const k=e.target.closest('button')?.dataset.key;if(!k||armed||writing)return;if(k==='clear')digits='';else if(k==='back')digits=digits.slice(0,-1);else digits=(digits.length===4?'':digits)+k;paint();if(digits.length===4&&!parsed())status('入力確認')};
+$('pad').onclick=e=>{const k=e.target.closest('button')?.dataset.key;if(!k||armed||writing)return;if(k==='clear')digits='';else if(k==='back')digits=digits.slice(0,-1);else digits=(digits.length===4?'':digits)+k;paint();if(digits.length>=3&&!parsed())status('入力確認');else if($('status').textContent==='入力確認')status('')};
 $('arm').onclick=()=>{const a=parsed();if(!a||armed||writing)return;armed={...a,on:true};attempt++;log('送信待ち '+fmt(armed)+' ON');status('接続待ち');paint();connect()};
 $('cancel').onclick=()=>{armed=null;if(timer){clearTimeout(timer);timer=null}status('待機解除');paint()};
 tick();setInterval(tick,15000);paint();})();</script>
