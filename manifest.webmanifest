@@ -1,7 +1,7 @@
 {
   "name": "CASIOアラームと時間計算",
   "short_name": "CASIOアラーム",
-  "description": "MTG-B1000のアラーム設定と時分秒の時間計算",
+  "description": "MTG-B1000／GST-B600のアラーム設定と時分秒の時間計算",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",
