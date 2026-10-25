@@ -90,7 +90,7 @@ body.b600.calculator{background:#241d2f;color:#fff8f4}
 body.b600.calculator nav button{background:#463c50;color:#c9b6c5}
 body.b600.calculator nav button.selected{background:#f0b779;color:#2d2031}
 </style>
-<div class="versionRow"><button id="updateApp" aria-label="更新して再起動">Ver.0.1.5</button></div>
+<div class="versionRow"><button id="updateApp" aria-label="更新して再起動">Ver.0.1.6</button></div>
 <nav><button id="alarmTab" class="selected">⌚ B1000</button><button id="b600Tab">⌚ B600</button><button id="calcTab">⏱ 時間電卓</button></nav>
 <div id="alarmView">
 <div class="times"><div class="timebox alarmbox"><div class="label">時計のアラーム時刻<br><strong id="current">--:--</strong></div><small id="currentNote">未確認</small></div></div>
@@ -139,7 +139,7 @@ function schedule(){if(timer||!armed)return;timer=setTimeout(()=>{timer=null;con
 async function connect(){if(!armed||connecting||writing)return;connecting=true;try{
  if(!isSecureContext||!navigator.bluetooth)throw Error('Android ChromeのHTTPSページで開いてください');
  if(!device){const all=navigator.bluetooth.getDevices?await navigator.bluetooth.getDevices():[];device=all.find(d=>d.name===name)}
- if(!device){status('時計を選択');device=await navigator.bluetooth.requestDevice({filters:[{name}],optionalServices:[uuid('0d'),0x1804]});if(device.name!==name){device=null;throw Error('選択中の時計と異なります')}}
+ if(!device){status('時計を選択');device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[uuid('0d'),0x1804]});if(device.name!==name){device=null;throw Error('選択中の時計と異なります')}}
  if(!armed)return;
  device.removeEventListener('gattserverdisconnected',disconnected);device.addEventListener('gattserverdisconnected',disconnected);
  status('接続待ち');
@@ -147,7 +147,7 @@ async function connect(){if(!armed||connecting||writing)return;connecting=true;t
  const svc=await server.getPrimaryService(uuid('0d'));request=await svc.getCharacteristic(uuid('2c'));setting=await svc.getCharacteristic(uuid('2d'));
  await setting.startNotifications();setting.addEventListener('characteristicvaluechanged',onNotify);
  connecting=false;await sendArmed();return;
- }catch(e){log('接続: '+e.name+' '+e.message);if(armed){status(e.name==='NotFoundError'?'時計を選択':'接続待ち: '+e.message);if(e.name==='NotFoundError'&&!device){armed=null;status('選択を中止');paint()}}}
+ }catch(e){log('接続: '+e.name+' '+e.message);if(armed){status(e.name==='NotFoundError'?'時計を選択':'接続待ち: '+e.message);if(!device){armed=null;status(e.name==='NotFoundError'?'選択を中止':e.message);paint()}}}
  finally{connecting=false;paint();if(armed&&!writing)schedule()}}
 function onNotify(e){const v=e.target.value,b=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength));if(b[0]===0x15&&pending)pending.resolve(b)}
 async function sendArmed(){if(!armed||writing)return;writing=true;const target=armed;armed=null;paint();try{
@@ -212,7 +212,7 @@ updateButton.onclick = async () => {
     console.warn(error);
     updateButton.textContent = '更新できません';
     buttons.forEach(([button,disabled]) => button.disabled = disabled);
-    setTimeout(() => updateButton.textContent = 'Ver.0.1.5',2500);
+    setTimeout(() => updateButton.textContent = 'Ver.0.1.6',2500);
   }
 };
 </script></html>
