@@ -73,38 +73,30 @@ nav{grid-template-columns:1fr 1fr}#calcTab{grid-column:1 / -1}
 .sendPreview,.sendPreview.sent{border:0}
 #pad button{background:#397866;color:#f4fff8}#pad button:active{background:#56977e}
 #pad.awaiting button{background:#295449}
-body.b600{background:#221f17;color:#faf5e9}
-body.b600 nav button{background:#3d382b;color:#aa9f85}
-body.b600 nav button.selected{background:#e6cf83;color:#302812}
-body.b600 .timebox.alarmbox{background:#3b3528;border-color:#847345}
-body.b600 .alarmbox .label,body.b600 .sendPreview .label{color:#ecdcad}
-body.b600 .sendPreview{background:#343022}
-body.b600 #pad button{background:#817044;color:#fff9e8}
-body.b600 #pad.awaiting button{background:#574c32}
-body.b600 #arm{background:#e6cf83;color:#302812}
-body.b600 #cancel{background:#62563b}
-body.b600 .timebox.alarmbox.verified{background:#4b4226;border-color:#e6cf83}
-body.b600 .sendPreview.sent{background:#28271f}
-body.b600 .sendPreview.sent .label,body.b600 .sendPreview.sent strong{color:#a49d87}
-body.b600.calculator{background:#241d2f;color:#fff8f4}
-body.b600.calculator nav button{background:#463c50;color:#c9b6c5}
-body.b600.calculator nav button.selected{background:#f0b779;color:#2d2031}
 </style>
 <style>
 nav{margin:18px 0 18px;gap:10px}
-body #calcTab,body.b600 #calcTab{background:#493c59;color:#e6d9ef}
-body #calcTab.selected,body.b600 #calcTab.selected{background:#68517d;color:#fff}
 @media(max-height:650px){nav{margin:12px 0;gap:8px}}
 </style>
-<div class="versionRow"><button id="updateApp" aria-label="更新して再起動">Ver.0.1.7</button></div>
+
+<style>
+nav{grid-template-columns:1fr 1fr}
+#calcTab{grid-column:auto}
+.alarmActions{display:grid;grid-template-columns:1.45fr .9fr;gap:8px;max-width:360px;margin:10px auto 5px}
+#arm{margin:0;max-width:none;width:100%}
+#offArm{border-radius:13px;background:#4a3b3d;color:#ffd9d6;font-size:1rem;font-weight:800;padding:10px 8px;min-height:53px}
+#offArm:disabled{opacity:.38}
+@media(max-height:650px){.alarmActions{margin:7px auto 4px;gap:6px}#offArm{min-height:45px;padding:8px}}
+</style>
+<div class="versionRow"><button id="updateApp" aria-label="更新して再起動">Ver.0.1.8</button></div>
 <div id="alarmSummary"><div class="times"><div class="timebox alarmbox"><div class="label">セット済み<br><strong id="current">--:--</strong></div><small id="currentNote">未確認</small></div></div>
 <div class="sendPreview" id="sendPreview"><div class="label" id="previewLabel">B1000へ転送</div><strong id="display">--:--</strong></div>
 </div>
-<nav><button id="alarmTab" class="selected">⌚ B1000</button><button id="b600Tab">⌚ B600</button><button id="calcTab">⏱ 時間電卓</button></nav>
+<nav><button id="alarmTab" class="selected">⌚ B1000</button><button id="calcTab">⏱ 時間電卓</button></nav>
 <div id="alarmView">
 <div id="inputZone">
 <div class="pad" id="pad"><button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button class="sub" data-key="clear">消去</button><button data-key="0">0</button><button class="sub" data-key="back">⌫</button></div>
-<button id="arm" disabled><span class="armaction" id="armAction">CASIOアラームに転送</span></button><button id="cancel" hidden>送信待ちを解除</button>
+<div class="alarmActions"><button id="arm" disabled><span class="armaction" id="armAction">B1000へ転送</span></button><button id="offArm">アラームOFF</button></div><button id="cancel" hidden>送信待ちを解除</button>
 <p id="status" role="status"></p>
 </div>
 </div>
@@ -114,62 +106,65 @@ body #calcTab.selected,body.b600 #calcTab.selected{background:#68517d;color:#fff
 <div class="calcBottom"><div class="pad" id="calcPad"><button data-digit="1">1</button><button data-digit="2">2</button><button data-digit="3">3</button><button data-digit="4">4</button><button data-digit="5">5</button><button data-digit="6">6</button><button data-digit="7">7</button><button data-digit="8">8</button><button data-digit="9">9</button><button class="sub" data-digit="clear">消去</button><button data-digit="0">0</button><button class="sub" data-digit="back">⌫</button></div></div>
 </div>
 <script>(()=>{'use strict';
-const tail='-b012-49a8-b1f8-394fb2032b0f',uuid=n=>'26eb00'+n+tail,$=id=>document.getElementById(id);let name='CASIO MTG-B1000';
-let device=null,request=null,setting=null,digits='',armed=null,connecting=false,pending=null,attempt=0,timer=null,writing=false,sentConfirmed=false;const lines=[];
+const tail='-b012-49a8-b1f8-394fb2032b0f',uuid=n=>'26eb00'+n+tail,$=id=>document.getElementById(id);
+const WATCH_NAME='CASIO MTG-B1000';
+let device=null,request=null,setting=null,digits='',armed=null,connecting=false,pending=null,timer=null,writing=false,sentConfirmed=false;const lines=[];
 function log(s){lines.push(s);console.debug(s)}
 function status(s){$('status').textContent=s}
 function hex(a){return a.map(b=>b.toString(16).padStart(2,'0')).join(' ')}
 function fmt(a){return String(a.h).padStart(2,'0')+':'+String(a.m).padStart(2,'0')}
 function showCurrent(a){$('current').textContent=fmt(a);$('currentNote').textContent=a.on?'ON':'OFF';$('currentNote').className=a.on?'on':'off'}
-
 function parsed(){if(digits.length<3||digits.length>4)return null;const s=digits.padStart(4,'0'),h=Number(s.slice(0,2)),m=Number(s.slice(2));return h<24&&m<60?{h,m}:null}
-function paint(){const s=digits.padStart(4,'0');$('display').textContent=digits?s.slice(0,2)+':'+s.slice(2):'--:--';$('display').classList.toggle('placeholder',digits.length<3);$('sendPreview').classList.toggle('editing',!!digits&&!sentConfirmed&&!armed&&!writing);$('sendPreview').classList.toggle('sent',sentConfirmed);$('previewLabel').textContent=sentConfirmed?'転送済み':(name==='CASIO MTG-B1000'?'B1000へ転送':'B600へ転送');document.querySelector('.alarmbox').classList.toggle('verified',sentConfirmed);$('armAction').textContent=armed?'接続待ち':writing?'転送中…':(name==='CASIO MTG-B1000'?'B1000へ転送':'B600へ転送');$('arm').disabled=!!armed||writing||!parsed();$('cancel').hidden=!armed;$('updateApp').disabled=!!armed||writing||connecting;for(const id of ['alarmTab','b600Tab'])$(id).disabled=!!armed||writing||connecting;$('pad').classList.toggle('awaiting',!!armed||writing||!!parsed()||sentConfirmed);}
-function selectWatch(next){
- if(armed||connecting||writing)return;
- if(name!==next){
-  device?.removeEventListener('gattserverdisconnected',disconnected);
-  setting?.removeEventListener('characteristicvaluechanged',onNotify);
-  device?.gatt?.disconnect();device=request=setting=null;name=next;digits='';sentConfirmed=false;
-  $('current').textContent='--:--';$('currentNote').textContent='未確認';$('currentNote').className='';status('');
- }
- document.body.classList.toggle('b600',name==='CASIO GST-B600');
- document.body.classList.remove('calculator');$('alarmView').hidden=false;$('alarmSummary').hidden=false;$('calcView').hidden=true;
- $('alarmTab').classList.toggle('selected',name==='CASIO MTG-B1000');
- $('b600Tab').classList.toggle('selected',name==='CASIO GST-B600');$('calcTab').classList.remove('selected');paint();
+function paint(){
+ const s=digits.padStart(4,'0');
+ $('display').textContent=digits?s.slice(0,2)+':'+s.slice(2):'--:--';
+ $('display').classList.toggle('placeholder',digits.length<3);
+ $('sendPreview').classList.toggle('editing',!!digits&&!sentConfirmed&&!armed&&!writing);
+ $('sendPreview').classList.toggle('sent',sentConfirmed);
+ $('previewLabel').textContent=sentConfirmed?'転送済み':'B1000へ転送';
+ document.querySelector('.alarmbox').classList.toggle('verified',sentConfirmed);
+ $('armAction').textContent=armed?(armed.mode==='off'?'OFF接続待ち':'接続待ち'):writing?'転送中…':'B1000へ転送';
+ $('arm').disabled=!!armed||writing||connecting||!parsed();
+ $('offArm').disabled=!!armed||writing||connecting;
+ $('cancel').hidden=!armed;
+ $('updateApp').disabled=!!armed||writing||connecting;
+ $('alarmTab').disabled=!!armed||writing||connecting;
+ $('calcTab').disabled=!!armed||writing||connecting;
+ $('pad').classList.toggle('awaiting',!!armed||writing||!!parsed()||sentConfirmed);
 }
-$('alarmTab').onclick=()=>selectWatch('CASIO MTG-B1000');
-$('b600Tab').onclick=()=>selectWatch('CASIO GST-B600');
-function disconnected(){request=setting=null;if($('currentNote').className==='on'||$('currentNote').className==='off')$('currentNote').textContent+='・前回';if(pending){pending.reject(Error('接続が切れました'));pending=null}if(armed&&!writing){status('接続待ち');schedule()}else if(!writing)status('切断');}
+$('alarmTab').onclick=()=>{if(armed||connecting||writing)return;document.body.classList.remove('calculator');$('alarmView').hidden=false;$('alarmSummary').hidden=false;$('calcView').hidden=true;$('alarmTab').classList.add('selected');$('calcTab').classList.remove('selected');paint()};
+function disconnected(){request=setting=null;if($('currentNote').className==='on'||$('currentNote').className==='off')$('currentNote').textContent+='・前回';if(pending){pending.reject(Error('接続が切れました'));pending=null}if(armed&&!writing){status('接続待ち');schedule()}else if(!writing)status('切断')}
 function waitAnswer(){return new Promise((resolve,reject)=>{const t=setTimeout(()=>{pending=null;reject(Error('時計から返事がありません'))},5000);pending={resolve:b=>{clearTimeout(t);pending=null;resolve(b)},reject:e=>{clearTimeout(t);pending=null;reject(e)}}})}
 async function read(){const answer=waitAnswer();try{await request.writeValueWithoutResponse(new Uint8Array([0x15]))}catch(e){pending?.reject(e);await answer.catch(()=>{});throw e}const b=await answer;log('読取: '+hex(b));if(b.length!==5||b[0]!==0x15||b[3]>23||b[4]>59)throw Error('アラーム1の返事を解読できません');return{h:b[3],m:b[4],on:!!(b[1]&0x40)}}
 function schedule(){if(timer||!armed)return;timer=setTimeout(()=>{timer=null;connect()},2500)}
 async function connect(){if(!armed||connecting||writing)return;connecting=true;try{
  if(!isSecureContext||!navigator.bluetooth)throw Error('Android ChromeのHTTPSページで開いてください');
- if(!device){const all=navigator.bluetooth.getDevices?await navigator.bluetooth.getDevices():[];device=all.find(d=>d.name===name)}
- if(!device){status('時計を選択');device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[uuid('0d'),0x1804]});if(device.name!==name){device=null;throw Error('選択中の時計と異なります')}}
+ if(!device){const all=navigator.bluetooth.getDevices?await navigator.bluetooth.getDevices():[];device=all.find(d=>d.name===WATCH_NAME)||null}
+ if(!device){status('初回だけB1000を選択');device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[uuid('0d'),0x1804]});if(device.name!==WATCH_NAME){device=null;throw Error('B1000ではありません')}}
  if(!armed)return;
  device.removeEventListener('gattserverdisconnected',disconnected);device.addEventListener('gattserverdisconnected',disconnected);
- status('接続待ち');
+ status('接続待ち・時計を約4秒長押し');
  const server=device.gatt.connected?device.gatt:await device.gatt.connect();if(!armed)return;
  const svc=await server.getPrimaryService(uuid('0d'));request=await svc.getCharacteristic(uuid('2c'));setting=await svc.getCharacteristic(uuid('2d'));
- await setting.startNotifications();setting.addEventListener('characteristicvaluechanged',onNotify);
+ await setting.startNotifications();setting.removeEventListener('characteristicvaluechanged',onNotify);setting.addEventListener('characteristicvaluechanged',onNotify);
  connecting=false;await sendArmed();return;
- }catch(e){log('接続: '+e.name+' '+e.message);if(armed){status(e.name==='NotFoundError'?'時計を選択':'接続待ち: '+e.message);if(!device){armed=null;status(e.name==='NotFoundError'?'選択を中止':e.message);paint()}}}
+ }catch(e){log('接続: '+e.name+' '+e.message);if(armed){if(!device){armed=null;status(e.name==='NotFoundError'?'選択を中止':e.message)}else{status('接続待ち・時計を約4秒長押し')}}}
  finally{connecting=false;paint();if(armed&&!writing)schedule()}}
 function onNotify(e){const v=e.target.value,b=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength));if(b[0]===0x15&&pending)pending.resolve(b)}
-async function sendArmed(){if(!armed||writing)return;writing=true;const target=armed;armed=null;paint();try{
+async function sendArmed(){if(!armed||writing)return;writing=true;const job=armed;armed=null;paint();try{
  const before=await read();showCurrent(before);
- if(before.h===target.h&&before.m===target.m&&before.on===target.on){sentConfirmed=true;status('時計はすでに '+fmt(before)+' '+(before.on?'ON':'OFF')+' です');return}
- // 書込は一回のみ。結果が不明な場合は自動再送しない。
- const b=[0x15,target.on?0x40:0,0x40,target.h,target.m];log('設定送信: '+hex(b));status(fmt(target)+' を時計へ送信中…');
+ const target=job.mode==='off'?{h:before.h,m:before.m,on:false}:{h:job.h,m:job.m,on:true};
+ if(before.h===target.h&&before.m===target.m&&before.on===target.on){sentConfirmed=true;status(job.mode==='off'?'アラームはすでにOFFです':'時計はすでに '+fmt(before)+' ONです');return}
+ const b=[0x15,target.on?0x40:0,0x40,target.h,target.m];log('設定送信: '+hex(b));status(job.mode==='off'?'アラームをOFFにしています…':fmt(target)+' を時計へ送信中…');
  await setting.writeValueWithResponse(new Uint8Array(b));await new Promise(r=>setTimeout(r,300));
  const after=await read();showCurrent(after);
  sentConfirmed=after.h===target.h&&after.m===target.m&&after.on===target.on;
- status(sentConfirmed?'送信成功 '+fmt(after)+' '+(after.on?'ON':'OFF'):'確認不一致');
+ status(sentConfirmed?(job.mode==='off'?'OFF確認済み '+fmt(after):'送信成功 '+fmt(after)+' ON'):'確認不一致');
  }catch(e){log('送信または確認失敗: '+e.name+' '+e.message);status('確認できません（再送なし）')}
  finally{writing=false;paint()}}
 $('pad').onclick=e=>{const k=e.target.closest('button')?.dataset.key;if(!k||armed||writing)return;const wasConfirmed=sentConfirmed;sentConfirmed=false;if(k==='clear')digits='';else if(k==='back')digits=digits.slice(0,-1);else digits=((wasConfirmed||digits.length===4)?'':digits)+k;paint();if(wasConfirmed||$('status').textContent==='入力確認')status('');if(digits.length>=3&&!parsed())status('入力確認')};
-$('arm').onclick=()=>{const a=parsed();if(!a||armed||writing)return;sentConfirmed=false;armed={...a,on:true};attempt++;log('送信待ち '+fmt(armed)+' ON');status('接続待ち');paint();connect()};
+$('arm').onclick=()=>{const a=parsed();if(!a||armed||writing)return;sentConfirmed=false;armed={mode:'on',...a};log('送信待ち '+fmt(armed)+' ON');status('接続待ち・時計を約4秒長押し');paint();connect()};
+$('offArm').onclick=()=>{if(armed||writing)return;sentConfirmed=false;armed={mode:'off'};log('OFF待ち');status('OFF待ち・時計を約4秒長押し');paint();connect()};
 $('cancel').onclick=()=>{armed=null;if(timer){clearTimeout(timer);timer=null}status('待機解除');paint()};
 paint();})();</script>
 <script>(()=>{'use strict';
@@ -219,7 +214,7 @@ updateButton.onclick = async () => {
     console.warn(error);
     updateButton.textContent = '更新できません';
     buttons.forEach(([button,disabled]) => button.disabled = disabled);
-    setTimeout(() => updateButton.textContent = 'Ver.0.1.7',2500);
+    setTimeout(() => updateButton.textContent = 'Ver.0.1.8',2500);
   }
 };
 </script></html>
