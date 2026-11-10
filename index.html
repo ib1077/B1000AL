@@ -90,7 +90,7 @@ nav{grid-template-columns:1fr 1fr}
 </style>
 
 <style>
-/* Ver.0.1.9: compact MON + side-by-side alarm displays */
+/* Ver.0.1.10: compact MON + side-by-side alarm displays */
 html,body{min-height:100%;}
 body{height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:8px 12px 8px;max-width:440px}
 .topBar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;min-height:0;flex:0 0 auto;margin-bottom:7px}
@@ -148,9 +148,30 @@ body.calculator #calcView{flex:1 1 auto}
  .topBar{gap:7px}
 }
 </style>
-<style>.timebox.alarmbox small{position:static;align-self:flex-end;margin-top:2px}.timebox.alarmbox,.sendPreview{min-height:96px}body{overflow-y:auto}@media(min-height:600px){body{overflow-y:hidden}}</style><header class="topBar">
+<style>.timebox.alarmbox small{position:static;align-self:flex-end;margin-top:2px}.timebox.alarmbox,.sendPreview{min-height:96px}body{overflow-y:auto}@media(min-height:600px){body{overflow-y:hidden}}</style><style>
+/* v0.1.10: use the central space for the keypad */
+html{height:100%;min-height:0}
+body{height:100dvh;min-height:0;padding-bottom:max(12px,env(safe-area-inset-bottom));overflow-y:auto}
+#alarmSummary{margin-top:clamp(12px,3dvh,24px)}
+#alarmView{flex:1 0 auto}
+#inputZone{flex:1;display:flex;flex-direction:column;padding-top:12px}
+#pad{width:100%;max-width:360px;flex:1;grid-template-rows:repeat(4,minmax(44px,1fr));gap:8px;max-height:360px}
+#pad button{height:auto;min-height:44px;font-size:1.55rem}
+.alarmActions{width:100%;flex:none;margin:12px auto 0;gap:12px}
+#arm,#offArm{min-height:52px}
+#status{flex:none;min-height:2.5em;margin:8px 0 0;overflow-wrap:anywhere}
+.timebox.alarmbox,.sendPreview{min-height:88px}
+@media(max-height:650px){
+ #alarmSummary{margin-top:10px}
+ #inputZone{padding-top:8px}
+ #pad{gap:6px;grid-template-rows:repeat(4,minmax(40px,1fr))}
+ #pad button{min-height:40px}
+ .alarmActions{margin-top:8px}
+ #arm,#offArm{min-height:44px}
+}
+</style><header class="topBar">
   <div class="monClock" aria-label="MON アナログ時計（端末時刻）"><canvas id="monClock" width="250" height="250"></canvas></div>
-  <div class="topControls"><button id="calcTab">⏱ 時間電卓</button><button id="updateApp" aria-label="更新して再起動">Ver.0.1.9</button></div>
+  <div class="topControls"><button id="calcTab">⏱ 時間電卓</button><button id="updateApp" aria-label="更新して再起動">Ver.0.1.10</button></div>
 </header>
 <div id="alarmSummary"><div class="times">
   <div class="timebox alarmbox"><div class="label">セット済み<strong id="current">--:--</strong></div><small id="currentNote">未確認</small></div>
@@ -385,7 +406,7 @@ updateButton.onclick = async () => {
     console.warn(error);
     updateButton.textContent = '更新できません';
     buttons.forEach(([button,disabled]) => button.disabled = disabled);
-    setTimeout(() => updateButton.textContent = 'Ver.0.1.9',2500);
+    setTimeout(() => updateButton.textContent = 'Ver.0.1.10',2500);
   }
 };
 </script></html>
