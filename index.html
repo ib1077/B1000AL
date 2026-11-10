@@ -90,7 +90,7 @@ nav{grid-template-columns:1fr 1fr}
 </style>
 
 <style>
-/* Ver.0.1.12: compact MON + side-by-side alarm displays */
+/* Ver.0.1.13: compact MON + side-by-side alarm displays */
 html,body{min-height:100%;}
 body{height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:8px 12px 8px;max-width:440px}
 .topBar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;min-height:0;flex:0 0 auto;margin-bottom:7px}
@@ -166,6 +166,17 @@ body.calculator{overflow-y:auto}#calcView{padding-top:20px;min-height:0;flex:1}
 .normalDisplay small{display:block;min-height:24px;color:#dccbdc}.normalDisplay strong{display:block;font-size:clamp(25px,9vw,44px);font-variant-numeric:tabular-nums}
 #normalPad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:20px 0 12px}#normalPad button{background:#51445e;color:#fff8f4;border-radius:12px;min-height:52px;height:clamp(48px,8dvh,68px);font-size:24px;font-weight:650;touch-action:manipulation}#normalPad .operator{background:#f0b779;color:#2d2031}#normalPad .zero{grid-column:span 2}
 @media(max-height:650px){.monStage{width:min(68vw,30dvh)}#normalPad button{min-height:43px;height:7dvh}.normalDisplay{min-height:90px;padding:12px}}
+</style><style>
+body{background:#000;touch-action:pan-y}body.calculator{background:#241d2f}
+.topBar{background:#000}.monStage{width:min(96vw,370px,44dvh)}
+.monStage .monClock,.monStage:not(.naviOn) .monClock{width:64%;height:64%;top:18%;left:18%}
+#navi{font-size:15px;min-width:70px;min-height:40px;padding:8px 14px}
+#sendPreview{font-family:inherit;text-align:left;cursor:pointer;color:#fff;touch-action:pan-y}
+#sendPreview:disabled{cursor:default}#sendPreview:disabled:not(.sent){opacity:.65}
+#sendPreview:not(:disabled){box-shadow:inset 0 0 0 2px #77e0b5}
+#sendPreview:not(:disabled):active{background:#245c49}
+#pad button,#normalPad button{touch-action:pan-y}#cancel{margin-top:8px}
+@media(max-height:650px){.monStage{width:min(90vw,35dvh)}}
 </style><header class="topBar"><div class="monStage"><div class="monClock"><canvas id="monClock" width="250" height="250"></canvas></div><iframe id="naviFrame" title="回転計算尺" hidden srcdoc="&lt;html&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;style&gt;html,body{margin:0;background:transparent;overflow:hidden}canvas{width:100%;display:block;touch-action:none}&lt;/style&gt;&lt;canvas id=&quot;dial&quot; width=&quot;1000&quot; height=&quot;1000&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
 &#x27;use strict&#x27;;
 const canvas=document.getElementById(&#x27;dial&#x27;),c=canvas.getContext(&#x27;2d&#x27;),tau=Math.PI*2;
@@ -183,15 +194,15 @@ function point(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.
 canvas.onpointerdown=e=&gt;{if(drag)return;const p=point(e);if(p.r&lt;60||p.r&gt;500)return;drag={id:e.pointerId,outer:p.r&gt;=395};last=p.a;if(!drag.outer)cursor=p.a;canvas.setPointerCapture(e.pointerId);draw()};
 canvas.onpointermove=e=&gt;{if(!drag||e.pointerId!==drag.id)return;const p=point(e);const delta=Math.atan2(Math.sin(p.a-last),Math.cos(p.a-last));if(drag.outer)rotation+=delta;else cursor+=delta;last=p.a;draw()};
 canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=()=&gt;{drag=null};
-draw();setInterval(draw,1000);&lt;/script&gt;&lt;/html&gt;"></iframe></div><div class="brandRow"><span>MONitimer</span><button id="navi" aria-pressed="false">Navi</button><button id="updateApp">Ver.0.1.12</button></div></header><span class="swipeHint">電卓 ⇔ AL</span>
+draw();setInterval(draw,1000);&lt;/script&gt;&lt;/html&gt;"></iframe></div><div class="brandRow"><span>MONitimer</span><button id="navi" aria-pressed="false">Navi</button><button id="updateApp">Ver.0.1.13</button></div></header><span class="swipeHint">AL → 電卓　／　電卓 ← AL</span>
 <div id="alarmSummary"><div class="times">
   <div class="timebox alarmbox"><div class="label">セット済み<strong id="current">--:--</strong></div><small id="currentNote">未確認</small></div>
-  <div class="sendPreview" id="sendPreview"><div class="label" id="previewLabel">B1000へ転送</div><strong id="display">--:--</strong></div>
+  <button type="button" class="sendPreview" id="sendPreview" disabled aria-label="入力時刻をB1000へ転送"><span class="label" id="previewLabel">B1000へ転送</span><strong id="display">--:--</strong></button>
 </div></div>
 <div id="alarmView">
 <div id="inputZone">
 <div class="pad" id="pad"><button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button class="sub" data-key="clear">消去</button><button data-key="0">0</button><button class="sub" data-key="back">⌫</button></div>
-<div class="alarmActions"><button id="arm" disabled><span class="armaction" id="armAction">B1000へ転送</span></button><button id="offArm">アラームOFF</button></div><button id="cancel" hidden>送信待ちを解除</button>
+<button id="cancel" hidden>送信待ちを解除</button>
 <p id="status" role="status"></p>
 </div>
 </div>
@@ -321,9 +332,8 @@ function paint(){
  $('sendPreview').classList.toggle('sent',sentConfirmed);
  $('previewLabel').textContent=sentConfirmed?'転送済み':'B1000へ転送';
  document.querySelector('.alarmbox').classList.toggle('verified',sentConfirmed);
- $('armAction').textContent=armed?(armed.mode==='off'?'OFF接続待ち':'接続待ち'):writing?'転送中…':'B1000へ転送';
- $('arm').disabled=!!armed||writing||connecting||!parsed();
- $('offArm').disabled=!!armed||writing||connecting;
+ $('previewLabel').textContent=armed?'接続待ち':writing?'転送中…':sentConfirmed?'転送済み':'B1000へ転送';
+ $('sendPreview').disabled=!!armed||writing||connecting||!parsed();
  $('cancel').hidden=!armed;
  $('updateApp').disabled=!!armed||writing||connecting;
  document.body.dataset.busy=String(!!armed||writing||connecting);
@@ -360,8 +370,7 @@ async function sendArmed(){if(!armed||writing)return;writing=true;const job=arme
  }catch(e){log('送信または確認失敗: '+e.name+' '+e.message);status('確認できません（再送なし）')}
  finally{writing=false;paint()}}
 $('pad').onclick=e=>{const k=e.target.closest('button')?.dataset.key;if(!k||armed||writing)return;const wasConfirmed=sentConfirmed;sentConfirmed=false;if(k==='clear')digits='';else if(k==='back')digits=digits.slice(0,-1);else digits=((wasConfirmed||digits.length===4)?'':digits)+k;paint();if(wasConfirmed||$('status').textContent==='入力確認')status('');if(digits.length>=3&&!parsed())status('入力確認')};
-$('arm').onclick=()=>{const a=parsed();if(!a||armed||writing)return;sentConfirmed=false;armed={mode:'on',...a};log('送信待ち '+fmt(armed)+' ON');status('接続待ち・時計を約4秒長押し');paint();connect()};
-$('offArm').onclick=()=>{if(armed||writing)return;sentConfirmed=false;armed={mode:'off'};log('OFF待ち');status('OFF待ち・時計を約4秒長押し');paint();connect()};
+$('sendPreview').onclick=()=>{const a=parsed();if(!a||armed||writing)return;sentConfirmed=false;armed={mode:'on',...a};log('送信待ち '+fmt(armed)+' ON');status('接続待ち・時計を約4秒長押し');paint();connect()};
 $('cancel').onclick=()=>{armed=null;if(timer){clearTimeout(timer);timer=null}status('待機解除');paint()};
 paint();})();</script><script>(()=>{'use strict';
 const $=id=>document.getElementById(id);let input='',done=false,failed=false;
@@ -379,11 +388,17 @@ $('normalPad').onclick=e=>{const key=e.target.closest('[data-calc]')?.dataset.ca
  else if(/[+*/-]/.test(key)){if(!input){if(key==='-')input='-'}else {input=input.replace(/[+*/-]+$/,'')+key}done=false}
  else{if(done){input='';done=false;$('expression').textContent=''}const current=input.split(/[+*/-]/).pop();if(key==='.'&&current.includes('.'))return;if(input.length<40)input+=(key==='.'&&!current?'0.':key)}paint()};
 $('navi').onclick=()=>{const show=$('naviFrame').hidden;$('naviFrame').hidden=!show;$('navi').setAttribute('aria-pressed',String(show));document.querySelector('.monStage').classList.toggle('naviOn',show)};
-let start=null;document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;if(e.target.closest('iframe,input'))return;start={x:e.clientX,y:e.clientY,t:Date.now(),id:e.pointerId}});
-document.addEventListener('pointerup',e=>{if(!start||e.pointerId!==start.id)return;const dx=e.clientX-start.x,dy=e.clientY-start.y,ms=Date.now()-start.t;start=null;if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6||ms>900||document.body.dataset.busy==='true')return;
-const calc=!document.body.classList.contains('calculator');document.body.classList.toggle('calculator',calc);$('alarmView').hidden=calc;$('alarmSummary').hidden=calc;$('calcView').hidden=!calc;});document.addEventListener('pointercancel',()=>start=null);paint();
-})();
-</script><script>
+let start=null,blockUntil=0;
+function begin(x,y,target){if(target.closest('iframe,input'))return;start={x,y,t:Date.now()}}
+function finish(x,y){if(!start)return;const dx=x-start.x,dy=y-start.y,ms=Date.now()-start.t;start=null;if(Math.abs(dx)<45||Math.abs(dx)<Math.abs(dy)*1.4||ms>1400||document.body.dataset.busy==='true')return;
+ const calc=dx>0;document.body.classList.toggle('calculator',calc);$('alarmView').hidden=calc;$('alarmSummary').hidden=calc;$('calcView').hidden=!calc;blockUntil=Date.now()+400;}
+document.addEventListener('touchstart',e=>{if(e.touches.length!==1){start=null;return}const p=e.touches[0];begin(p.clientX,p.clientY,e.target)},{passive:true});
+document.addEventListener('touchend',e=>{const p=e.changedTouches[0];if(p)finish(p.clientX,p.clientY)},{passive:true});
+document.addEventListener('touchcancel',()=>start=null);
+document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button===0)begin(e.clientX,e.clientY,e.target)});
+document.addEventListener('pointerup',e=>{if(e.pointerType==='mouse')finish(e.clientX,e.clientY)});
+document.addEventListener('click',e=>{if(Date.now()<blockUntil){e.preventDefault();e.stopImmediatePropagation()}},true);paint();
+})();</script><script>
 const updateButton = document.getElementById('updateApp');
 let registration;
 async function registerApp() {
@@ -415,7 +430,7 @@ updateButton.onclick = async () => {
     console.warn(error);
     updateButton.textContent = '更新できません';
     buttons.forEach(([button,disabled]) => button.disabled = disabled);
-    setTimeout(() => updateButton.textContent = 'Ver.0.1.12',2500);
+    setTimeout(() => updateButton.textContent = 'Ver.0.1.13',2500);
   }
 };
 </script></html>
