@@ -1,7 +1,7 @@
 {
-  "name": "CASIOアラームと時間計算",
-  "short_name": "CASIOアラーム",
-  "description": "MTG-B1000のアラーム設定・OFFと時分秒の時間計算",
+  "name": "MONitimer",
+  "short_name": "MONitimer",
+  "description": "MTG-B1000アラーム・通常電卓・円形計算尺",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",
