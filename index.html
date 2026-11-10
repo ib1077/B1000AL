@@ -90,7 +90,7 @@ nav{grid-template-columns:1fr 1fr}
 </style>
 
 <style>
-/* Ver.0.1.14: compact MON + side-by-side alarm displays */
+/* Ver.0.1.15: compact MON + side-by-side alarm displays */
 html,body{min-height:100%;}
 body{height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:8px 12px 8px;max-width:440px}
 .topBar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;min-height:0;flex:0 0 auto;margin-bottom:7px}
@@ -191,7 +191,7 @@ body,body.calculator{height:100dvh;min-height:0;overflow:hidden;overscroll-behav
 #answer{flex:none;margin-top:12px;overflow-wrap:anywhere}
 #normalPad{flex:none;gap:6px;margin:12px 0 0}#normalPad button{height:clamp(37px,7.4dvh,60px);min-height:0}#normalPad [data-calc=time]{font-size:17px}#normalPad button:disabled{opacity:.22}.timeMode [data-calc=time]{background:#f0b779!important;color:#2d2031!important}
 @media(max-height:600px){.monStage{width:min(80vw,30dvh)}.timebox.alarmbox,.sendPreview{min-height:62px}#pad button{height:5.5dvh}#navi{min-height:28px}.brandRow{font-size:11px}}
-</style><header class="topBar"><div class="monStage"><div class="monClock"><canvas id="monClock" width="250" height="250"></canvas></div><iframe id="naviFrame" title="回転計算尺" hidden srcdoc="&lt;html&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;style&gt;html,body{margin:0;background:transparent;overflow:hidden}canvas{width:100%;display:block;touch-action:none}&lt;/style&gt;&lt;canvas id=&quot;dial&quot; width=&quot;1000&quot; height=&quot;1000&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+</style><style>.monStage.naviOn,.monStage.naviOn .monClock,.monStage.naviOn canvas{background:#000}#naviFrame{background:transparent;color-scheme:normal}#normalPad .zero{grid-column:auto}</style><header class="topBar"><div class="monStage"><div class="monClock"><canvas id="monClock" width="250" height="250"></canvas></div><iframe id="naviFrame" title="回転計算尺" hidden srcdoc="&lt;html&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;style&gt;html,body{margin:0;background:transparent;overflow:hidden}canvas{width:100%;display:block;touch-action:none}&lt;/style&gt;&lt;canvas id=&quot;dial&quot; width=&quot;1000&quot; height=&quot;1000&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
 &#x27;use strict&#x27;;
 const canvas=document.getElementById(&#x27;dial&#x27;),c=canvas.getContext(&#x27;2d&#x27;),tau=Math.PI*2;
 let rotation=0,cursor=0,drag=null,last=0;
@@ -208,7 +208,7 @@ function point(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.
 canvas.onpointerdown=e=&gt;{if(drag)return;const p=point(e);if(p.r&lt;60||p.r&gt;500)return;drag={id:e.pointerId,outer:p.r&gt;=395};last=p.a;if(!drag.outer)cursor=p.a;canvas.setPointerCapture(e.pointerId);draw()};
 canvas.onpointermove=e=&gt;{if(!drag||e.pointerId!==drag.id)return;const p=point(e);const delta=Math.atan2(Math.sin(p.a-last),Math.cos(p.a-last));if(drag.outer)rotation+=delta;else cursor+=delta;last=p.a;draw()};
 canvas.onpointerup=canvas.onpointercancel=canvas.onlostpointercapture=()=&gt;{drag=null};
-draw();setInterval(draw,1000);&lt;/script&gt;&lt;/html&gt;"></iframe></div><div class="brandRow"><span>MONitimer</span><button id="navi" aria-pressed="false">Navi</button><button id="updateApp">Ver.0.1.14</button></div></header><span class="swipeHint">右フリック → 電卓　／　← AL</span>
+draw();setInterval(draw,1000);&lt;/script&gt;&lt;/html&gt;"></iframe></div><div class="brandRow"><span>MONitimer</span><button id="navi" aria-pressed="false">Navi</button><button id="updateApp">Ver.0.1.15</button></div></header><span class="swipeHint">← 電卓　／　AL →</span>
 <div id="alarmSummary"><div class="times">
   <div class="timebox alarmbox"><div class="label">セット済み<strong id="current">--:--</strong></div><small id="currentNote">未確認</small></div>
   <button type="button" class="sendPreview" id="sendPreview" disabled aria-label="入力時刻をB1000へ転送"><span class="label" id="previewLabel">B1000へ転送</span><strong id="display">--:--</strong></button>
@@ -220,7 +220,7 @@ draw();setInterval(draw,1000);&lt;/script&gt;&lt;/html&gt;"></iframe></div><div 
 <p id="status" role="status"></p>
 </div>
 </div>
-<div id="calcView" hidden><div class="normalDisplay"><small id="expression"></small><strong id="answer">0</strong></div><div id="normalPad"><button data-calc="ac" class="">AC</button><button data-calc="back" class="">⌫</button><button data-calc="time" class="">時間</button><button data-calc="/" class="operator">÷</button><button data-calc="7" class="">7</button><button data-calc="8" class="">8</button><button data-calc="9" class="">9</button><button data-calc="*" class="operator">×</button><button data-calc="4" class="">4</button><button data-calc="5" class="">5</button><button data-calc="6" class="">6</button><button data-calc="-" class="operator">−</button><button data-calc="1" class="">1</button><button data-calc="2" class="">2</button><button data-calc="3" class="">3</button><button data-calc="+" class="operator">+</button><button data-calc="0" class="zero">0</button><button data-calc="." class="">.</button><button data-calc="=" class="operator">＝</button></div></div><script>(()=>{
+<div id="calcView" hidden><div class="normalDisplay"><small id="expression"></small><strong id="answer">0</strong></div><div id="normalPad"><button data-calc="ac" class="">AC</button><button data-calc="back" class="">⌫</button><button data-calc="time" class="">時間</button><button data-calc="/" class="operator">÷</button><button data-calc="7" class="">7</button><button data-calc="8" class="">8</button><button data-calc="9" class="">9</button><button data-calc=":" class="operator" disabled>:</button><button data-calc="4" class="">4</button><button data-calc="5" class="">5</button><button data-calc="6" class="">6</button><button data-calc="-" class="operator">−</button><button data-calc="1" class="">1</button><button data-calc="2" class="">2</button><button data-calc="3" class="">3</button><button data-calc="+" class="operator">+</button><button data-calc="*" class="operator">×</button><button data-calc="0" class="">0</button><button data-calc="." class="">.</button><button data-calc="=" class="operator">＝</button></div></div><script>(()=>{
 /* -------------------------
    MON の針（キャンバス）
 --------------------------*/
@@ -229,6 +229,7 @@ const ctx=canvas.getContext("2d");
 
 function drawClock(){
     const now=new Date();
+    const ink=document.querySelector(".monStage").classList.contains("naviOn")?"white":"black";
     const w=canvas.width;
     const h=canvas.height;
     const r=w/2;
@@ -241,11 +242,11 @@ function drawClock(){
     ctx.beginPath();
     ctx.arc(0,0,r-5,0,Math.PI*2);
     ctx.lineWidth=5;
-    ctx.strokeStyle="black";
+    ctx.strokeStyle=ink;
     ctx.stroke();
 
     // MON ロゴ
-    ctx.fillStyle="black";
+    ctx.fillStyle=ink;
     ctx.font="bold 16px Arial";
     ctx.textAlign="center";
     ctx.fillText("MON",0,-r+85);
@@ -275,10 +276,10 @@ function drawClock(){
     const hr=(now.getHours()%12)+min/60;
 
     // 時針
-    drawHand(hr*Math.PI/6,75,12,"black");
+    drawHand(hr*Math.PI/6,75,12,ink);
 
     // 分針
-    drawHand(min*Math.PI/30,105,9,"black");
+    drawHand(min*Math.PI/30,105,9,ink);
 
     // 秒針
     drawSecondHand(sec*Math.PI/30,75);
@@ -286,7 +287,7 @@ function drawClock(){
     // 中心
     ctx.beginPath();
     ctx.arc(0,0,6,0,Math.PI*2);
-    ctx.fillStyle="black";
+    ctx.fillStyle=ink;
     ctx.fill();
 
     ctx.restore();
@@ -405,7 +406,7 @@ $('navi').onclick=()=>{const show=$('naviFrame').hidden;$('naviFrame').hidden=!s
 let start=null,blockUntil=0;
 function begin(x,y,target){if(target.closest('iframe,input'))return;start={x,y,t:Date.now()}}
 function finish(x,y){if(!start)return;const dx=x-start.x,dy=y-start.y,ms=Date.now()-start.t;start=null;if(Math.abs(dx)<45||Math.abs(dx)<Math.abs(dy)*1.4||ms>1400||document.body.dataset.busy==='true')return;
- const calc=dx>0;document.body.classList.toggle('calculator',calc);$('alarmView').hidden=calc;$('alarmSummary').hidden=calc;$('calcView').hidden=!calc;if(calc)$('calcView').animate([{transform:'translateX(100%)',opacity:0},{transform:'translateX(0)',opacity:1}],{duration:220,easing:'ease-out'});blockUntil=Date.now()+400;}
+ const calc=dx<0;document.body.classList.toggle('calculator',calc);$('alarmView').hidden=calc;$('alarmSummary').hidden=calc;$('calcView').hidden=!calc;if(calc)$('calcView').animate([{transform:'translateX(100%)',opacity:0},{transform:'translateX(0)',opacity:1}],{duration:220,easing:'ease-out'});blockUntil=Date.now()+400;}
 document.addEventListener('touchstart',e=>{if(e.touches.length!==1){start=null;return}const p=e.touches[0];begin(p.clientX,p.clientY,e.target)},{passive:true});
 document.addEventListener('touchend',e=>{const p=e.changedTouches[0];if(p)finish(p.clientX,p.clientY)},{passive:true});
 document.addEventListener('touchcancel',()=>start=null);
@@ -444,20 +445,20 @@ updateButton.onclick = async () => {
     console.warn(error);
     updateButton.textContent = '更新できません';
     buttons.forEach(([button,disabled]) => button.disabled = disabled);
-    setTimeout(() => updateButton.textContent = 'Ver.0.1.14',2500);
+    setTimeout(() => updateButton.textContent = 'Ver.0.1.15',2500);
   }
 };
 </script><script>(()=>{'use strict';const $=id=>document.getElementById(id),pad=$('normalPad'),ordinary=pad.onclick;let mode=false,raw='',finished=false,saved=null;
 const keyButton=pad.querySelector('[data-calc="time"]');
-function formatted(d){if(!d)return '';const p=d.padStart(6,'0');return p.slice(0,-4)+':'+p.slice(-4,-2)+':'+p.slice(-2)}
-function formula(){return raw.replace(/\d+/g,formatted).replaceAll('+',' ＋ ').replaceAll('-',' − ')}
-function seconds(d){const p=d.padStart(6,'0'),h=Number(p.slice(0,-4)),m=Number(p.slice(-4,-2)),s=Number(p.slice(-2));if(m>59||s>59)throw Error('分・秒は59まで');return h*3600+m*60+s}
-function total(){if(!raw||/[+-]$/.test(raw))throw Error('式を入力');let n=0;for(const item of raw.match(/[+-]?\d+/g)||[]){const neg=item[0]==='-';n+=(neg?-1:1)*seconds(item.replace(/^[+-]/,''))}return n}
+function formatted(d){if(!d)return '';if(d.includes(':'))return d;const p=d.padStart(6,'0');return p.slice(0,-4)+':'+p.slice(-4,-2)+':'+p.slice(-2)}
+function formula(){return raw.replace(/[\d:]+/g,formatted).replaceAll('+',' ＋ ').replaceAll('-',' − ')}
+function seconds(d){let h,m,s;if(d.includes(':')){const parts=d.split(':');if(parts.length>3||parts.some(x=>!/^\d+$/.test(x)))throw Error('時:分:秒を入力');[h,m,s=0]=parts.map(Number)}else{const p=d.padStart(6,'0');h=Number(p.slice(0,-4));m=Number(p.slice(-4,-2));s=Number(p.slice(-2))}if(m>59||s>59)throw Error('分・秒は59まで');return h*3600+m*60+s}
+function total(){if(!raw||/[+-]$/.test(raw))throw Error('式を入力');let n=0;for(const item of raw.match(/[+-]?[\d:]+/g)||[]){const neg=item[0]==='-';n+=(neg?-1:1)*seconds(item.replace(/^[+-]/,''))}return n}
 function result(n){return (n<0?'−':'')+String(Math.floor(Math.abs(n)/3600)).padStart(2,'0')+':'+String(Math.floor(Math.abs(n)%3600/60)).padStart(2,'0')+':'+String(Math.abs(n)%60).padStart(2,'0')}
 function paint(){ $('expression').textContent=formula()+(finished?' ＝':'');try{$('answer').textContent=raw?result(total()):'00:00:00'}catch(e){$('answer').textContent=/[+-]$/.test(raw)?'…':e.message} }
 pad.onclick=e=>{const k=e.target.closest('[data-calc]')?.dataset.calc;if(!k)return;if(k==='time'){
- mode=!mode;keyButton.textContent=mode?'通常':'時間';keyButton.setAttribute('aria-pressed',String(mode));pad.classList.toggle('timeMode',mode);for(const b of pad.querySelectorAll('[data-calc]'))if(['*','/','.'].includes(b.dataset.calc))b.disabled=mode;
+ mode=!mode;keyButton.textContent=mode?'通常':'時間';keyButton.setAttribute('aria-pressed',String(mode));pad.classList.toggle('timeMode',mode);for(const b of pad.querySelectorAll('[data-calc]')){if(['*','/','.'].includes(b.dataset.calc))b.disabled=mode;if(b.dataset.calc===':')b.disabled=!mode;}
  if(mode){saved=[$('expression').textContent,$('answer').textContent];paint()}else{[$('expression').textContent,$('answer').textContent]=saved||['','0']}return}
- if(!mode){ordinary(e);return}if(k==='ac'){raw='';finished=false}else if(k==='back'){raw=raw.slice(0,-1);finished=false}else if(k==='='){finished=true}else if(k==='+'||k==='-'){if(raw){raw=raw.replace(/[+-]$/,'')+k;finished=false}else if(k==='-')raw='-'}else if(/^\d$/.test(k)){if(finished){raw='';finished=false}const d=raw.split(/[+-]/).pop();if(d.length<6&&raw.length<80)raw+=k}paint();};
+ if(!mode){if(k!==':')ordinary(e);return}if(k==='ac'){raw='';finished=false}else if(k==='back'){raw=raw.slice(0,-1);finished=false}else if(k==='='){finished=true}else if(k==='+'||k==='-'){if(raw){raw=raw.replace(/[+-]$/,'')+k;finished=false}else if(k==='-')raw='-'}else if(k===':'){if(finished){raw='';finished=false}const d=raw.split(/[+-]/).pop();if(d&&!d.endsWith(':')&&d.split(':').length<3)raw+=':'}else if(/^\d$/.test(k)){if(finished){raw='';finished=false}const d=raw.split(/[+-]/).pop();const parts=d.split(':');const limit=parts.length===1?6:2;if(parts[parts.length-1].length<limit&&raw.length<80)raw+=k}paint();};
 })();
 </script></html>
