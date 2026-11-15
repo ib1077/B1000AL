@@ -1,4 +1,4 @@
-const CACHE = 'casio-b1000-calc-v019-three-views';
+const CACHE = 'casio-b1000-calc-v020-ruler-controls';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
